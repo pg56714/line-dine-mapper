@@ -6,10 +6,10 @@
 	"author": "HONG,HAO-SYUAN <pg785632541@gmail.com>",
 	"license": "MIT",
 	"scripts": {
-	  "start": "node dist/app.js",
-	  "dev": "ts-node src/app.ts",
-	  "build": "tsc",
-	  "biome": "biome check --write"
+		"start": "node dist/app.js",
+		"dev": "ts-node src/app.ts",
+		"build": "tsc",
+		"biome": "biome check --write"
 	},
 	"dependencies": {
 		"@line/bot-sdk": "^9.5.0",

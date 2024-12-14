@@ -1,0 +1,48 @@
+name: "Bug report"
+description: "Create a report to help us improve the Line Bot."
+title: "[Bug]: "
+labels: ["bug", "triage"]
+# assignees:
+#   - line-dine-mapper-team
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to fill out this bug report! This will help us improve the Line Bot experience.
+  - type: textarea
+    id: describe
+    attributes:
+      label: "Describe the Bug"
+      description: "Please provide a clear and concise description of the issue you encountered. If possible, attach screenshots to help us understand the problem."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: "Steps to Reproduce"
+      description: "Please list the steps to reproduce the issue:"
+      value: |
+        1. Open the Line Bot ...
+        2. Click on ...
+        3. Scroll to ...
+        4. See the error
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: "Environment Information"
+      description: "Please provide the Line version and operating system you are using, e.g., Line version 12.0.1, iOS 15."
+      placeholder: "e.g., Line version 12.0.1, iOS 15"
+    validations:
+      required: true
+  - type: checkboxes
+    id: validation
+    attributes:
+      label: "Submission Checklist"
+      description: "Before submitting this issue, please ensure you have completed the following:"
+      options:
+        - label: "Follow our [Code of Conduct](https://github.com/line-dine-mapper/.github/blob/main/CODE_OF_CONDUCT.md)"
+          required: true
+        - label: "Check that there isn't [already an issue](https://github.com/line-dine-mapper/issues) reporting the same bug to avoid duplicates."
+          required: true

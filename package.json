@@ -1,22 +1,22 @@
 {
-  "name": "line-dine-mapper",
-  "version": "1.0.0",
-  "main": "index.js",
-  "repository": "git@github.com:pg56714/line-dine-mapper.git",
-  "author": "HONG,HAO-SYUAN <pg785632541@gmail.com>",
-  "license": "MIT",
-  "dependencies": {
-    "@line/bot-sdk": "^9.5.0",
-    "body-parser": "^1.20.3",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "ngrok": "^5.0.0-beta.2"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "1.9.4",
-    "@types/express": "^5.0.0",
-    "@types/node": "^22.10.2",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.7.2"
-  }
+	"name": "line-dine-mapper",
+	"version": "1.0.0",
+	"main": "index.js",
+	"repository": "git@github.com:pg56714/line-dine-mapper.git",
+	"author": "HONG,HAO-SYUAN <pg785632541@gmail.com>",
+	"license": "MIT",
+	"dependencies": {
+		"@line/bot-sdk": "^9.5.0",
+		"body-parser": "^1.20.3",
+		"dotenv": "^16.4.7",
+		"express": "^4.21.2",
+		"ngrok": "^5.0.0-beta.2"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"@types/express": "^5.0.0",
+		"@types/node": "^22.10.2",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.7.2"
+	}
 }

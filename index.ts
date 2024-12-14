@@ -1,14 +1,18 @@
 import {
 	type ClientConfig,
+	HTTPFetchError,
 	type MessageAPIResponseBase,
+	type MiddlewareConfig,
 	messagingApi,
 	middleware,
-	type MiddlewareConfig,
 	type webhook,
-	HTTPFetchError,
 } from "@line/bot-sdk";
-import express, { type Application, type Request, type Response } from "express";
 import dotenv from "dotenv";
+import express, {
+	type Application,
+	type Request,
+	type Response,
+} from "express";
 import ngrok from "ngrok";
 
 // 載入環境變數設定
@@ -65,8 +69,15 @@ app.post(
 	"/callback",
 	middleware(middlewareConfig), // 使用 LINE 提供的中介軟體
 	async (req: Request, res: Response): Promise<void> => {
-		const callbackRequest: webhook.CallbackRequest = req.body; // 取得請求的主體內容
-		const events: webhook.Event[] = callbackRequest.events!; // 提取事件列表
+		const callbackRequest = req.body as webhook.CallbackRequest; // 取得請求的主體內容
+		const events = callbackRequest?.events; // 提取事件列表
+
+		if (!events || events.length === 0) {
+			res
+				.status(400)
+				.json({ status: "error", message: "No events found in the request." });
+			return;
+		}
 
 		try {
 			await Promise.all(
@@ -92,8 +103,8 @@ app.post(
 	},
 );
 
-// 本地伺服器 URL 測試用
-// 使用 ngrok 啟動伺服器並建立公開的 URL
+// 本地測試用
+// 啟動伺服器並使用 ngrok 建立公開 URL
 app.listen(PORT, async () => {
 	console.log(`LINE Bot 伺服器已啟動，埠號為 ${PORT}`);
 
@@ -107,8 +118,8 @@ app.listen(PORT, async () => {
 	}
 });
 
-// 啟動伺服器
+// // 啟動伺服器
 // app.listen(PORT, () => {
-//   console.log(LINE Bot 伺服器已啟動，埠號為 ${PORT});
-//   console.log(訪問 URL: http://localhost:${PORT});
+//   console.log(`LINE Bot 伺服器已啟動，埠號為 ${PORT}`);
+//   console.log(`訪問 URL: http://localhost:${PORT}`);
 // });

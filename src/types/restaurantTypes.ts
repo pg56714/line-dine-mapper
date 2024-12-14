@@ -1,5 +1,8 @@
 // 定義餐廳基本資訊
 export interface Restaurant {
+	mapUrl: string;
+	url: string;
+	imageUrl: string;
 	name: string; // 餐廳名稱
 	vicinity: string; // 餐廳地址
 	place_id: string; // 餐廳的 Google Place ID

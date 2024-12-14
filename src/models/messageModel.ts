@@ -243,36 +243,99 @@ const sendRestaurantDetails = async (
  * @param replyToken - 用於回覆訊息的 token
  */
 const sendRestaurantList = async (replyToken: string) => {
-	const startIndex = userPreferences.showNext;
-	const endIndex = Math.min(
-		userPreferences.showNext + 4,
-		userPreferences.restaurants.length,
-	);
+	const startIndex = userPreferences.showNext || 0;
+	const endIndex = Math.min(startIndex + 4, userPreferences.restaurants.length);
 
-	const messages: messagingApi.Message[] = userPreferences.restaurants
+	// 動態生成 FlexBubble 陣列
+	const bubbles: messagingApi.FlexBubble[] = userPreferences.restaurants
 		.slice(startIndex, endIndex)
-		.map((restaurant, i) => ({
-			type: "text",
-			text: `第 ${startIndex + i + 1} 間\n🍴名稱: ${restaurant.name}\n📍 地址: ${restaurant.vicinity}\n\n📝 評論數: ${restaurant.user_ratings_total || "無"}\n⭐ 評分: ${restaurant.rating || "無"}`,
-		}));
-
-	if (endIndex < userPreferences.restaurants.length) {
-		messages.push({
-			type: "text",
-			text: "輸入「繼續」以查看更多餐廳！",
+		.map((restaurant, index): messagingApi.FlexBubble => {
+			// console.log(restaurant.imageUrl); // debug
+			return {
+				type: "bubble",
+				hero: {
+					type: "image",
+					url: restaurant.imageUrl,
+					size: "full",
+					aspectRatio: "20:13",
+					aspectMode: "cover",
+					action: {
+						type: "uri",
+						uri: restaurant.url,
+					},
+				},
+				body: {
+					type: "box",
+					layout: "vertical",
+					contents: [
+						{
+							type: "text",
+							text: `${startIndex + index + 1}. ${restaurant.name}`,
+							weight: "bold",
+							size: "xl",
+							wrap: true,
+						},
+						{
+							type: "text",
+							text: `地址：${restaurant.vicinity}`,
+							wrap: true,
+						},
+						{
+							type: "text",
+							text: `評論數：${restaurant.user_ratings_total || "無"}`,
+							wrap: true,
+						},
+						{
+							type: "text",
+							text: `評分：${restaurant.rating || "無"}`,
+							wrap: true,
+						},
+					],
+				},
+				footer: {
+					type: "box",
+					layout: "vertical",
+					spacing: "sm",
+					contents: [
+						{
+							type: "button",
+							style: "link",
+							action: {
+								type: "uri",
+								label: "查看地圖",
+								uri: restaurant.mapUrl,
+							},
+						},
+					],
+				},
+			};
 		});
-	} else {
-		messages.push({
-			type: "text",
-			text: "請輸入餐廳的序號（例如：1 表示第 1 間餐廳），或輸入「隨機」讓系統推薦。",
-		});
-	}
 
-	userPreferences.showNext = endIndex;
+	// Flex Message
+	const flexMessage: messagingApi.FlexMessage = {
+		type: "flex", // 明確指定為 "flex"
+		altText: "餐廳清單",
+		contents: {
+			type: "carousel",
+			contents: bubbles,
+		},
+	};
 
+	// 普通文字訊息
+	const textMessage: messagingApi.TextMessage = {
+		type: "text",
+		text:
+			endIndex < userPreferences.restaurants.length
+				? "輸入「繼續」以查看更多餐廳！"
+				: "已顯示所有餐廳。請輸入餐廳序號或輸入「隨機」以隨機推薦。",
+	};
+
+	userPreferences.showNext = endIndex; // 更新索引
+
+	// 發送訊息
 	await client.replyMessage({
 		replyToken,
-		messages: messages,
+		messages: [flexMessage, textMessage],
 	});
 };
 

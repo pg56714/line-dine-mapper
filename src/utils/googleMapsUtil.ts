@@ -63,28 +63,41 @@ export const searchNearbyRestaurants = async (
 					radius,
 					type,
 					key: googleMapsApiKey,
-					language: "zh-TW", // 設置為繁體中文
+					language: "zh-TW",
 				},
 			},
 		);
 
-		const restaurants = response.data.results as Restaurant[];
+		const restaurants = response.data.results;
 
-		// 修正排序邏輯：先按評論數排序，若評論數相同再按評分排序
-		const sortedRestaurants = restaurants.sort((a, b) => {
-			const reviewsA = a.user_ratings_total ?? 0; // 評論數，默認為 0
+		// 將 API 結果轉換為自定義 Restaurant 格式
+		const formattedRestaurants: Restaurant[] = restaurants.map(
+			(restaurant) => ({
+				name: restaurant.name,
+				vicinity: restaurant.vicinity,
+				place_id: restaurant.place_id,
+				rating: restaurant.rating,
+				user_ratings_total: restaurant.user_ratings_total,
+				imageUrl: restaurant.photos?.[0]?.photo_reference
+					? getPhotoUrl(restaurant.photos[0].photo_reference)
+					: "",
+				url: `https://www.google.com/maps/place/?q=place_id:${restaurant.place_id}`, // Google Maps 頁面連結
+				mapUrl: `https://www.google.com/maps/dir/?api=1&destination=${restaurant.geometry.location.lat},${restaurant.geometry.location.lng}`, // 導航連結
+			}),
+		);
+
+		// 按評論數和評分排序
+		return formattedRestaurants.sort((a, b) => {
+			const reviewsA = a.user_ratings_total ?? 0;
 			const reviewsB = b.user_ratings_total ?? 0;
-			const ratingA = a.rating ?? 0; // 評分，默認為 0
+			const ratingA = a.rating ?? 0;
 			const ratingB = b.rating ?? 0;
 
-			// 先比較評論數，若相等則比較評分
 			if (reviewsB === reviewsA) {
-				return ratingB - ratingA; // 評分由高到低
+				return ratingB - ratingA;
 			}
-			return reviewsB - reviewsA; // 評論數由多到少
+			return reviewsB - reviewsA;
 		});
-
-		return sortedRestaurants;
 	} catch (error) {
 		console.error("Error fetching nearby restaurants:", error);
 		throw error;
@@ -115,4 +128,14 @@ export const getRestaurantDetails = async (
 		console.error("Error fetching restaurant details:", error);
 		throw error;
 	}
+};
+
+/**
+ * 根據 photo_reference 生成圖片 URL
+ * @param photoReference - Google Maps API 返回的 photo_reference
+ * @param maxWidth - 圖片最大寬度（選填）
+ * @returns 圖片完整 URL
+ */
+const getPhotoUrl = (photoReference: string, maxWidth = 400): string => {
+	return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photoreference=${photoReference}&key=${googleMapsApiKey}`;
 };

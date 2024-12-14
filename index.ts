@@ -103,23 +103,23 @@ app.post(
 	},
 );
 
-// 本地測試用
-// 啟動伺服器並使用 ngrok 建立公開 URL
+// 判斷是否本地開發模式
+const isLocal = process.env.IS_LOCAL === "true";
+
+// 啟動伺服器
 app.listen(PORT, async () => {
 	console.log(`LINE Bot 伺服器已啟動，埠號為 ${PORT}`);
 
-	try {
-		// 使用 ngrok 連結本地伺服器，建立公開的 URL
-		const url = await ngrok.connect(PORT);
-		console.log(`公開的 Webhook URL 是：${url}/callback`);
-		console.log("請將此 URL 設定為 LINE 開發者後台的 Webhook URL");
-	} catch (error) {
-		console.error("無法啟動 ngrok:", error); // ngrok 啟動錯誤時的處理
+	if (isLocal) {
+		try {
+			// 使用 ngrok 連結本地伺服器，建立公開的 URL
+			const url = await ngrok.connect(PORT);
+			console.log(`公開的 Webhook URL 是：${url}/callback`);
+			console.log("請將此 URL 設定為 LINE 開發者後台的 Webhook URL");
+		} catch (error) {
+			console.error("無法啟動 ngrok:", error); // ngrok 啟動錯誤時的處理
+		}
+	} else {
+		console.log(`請將 http://localhost:${PORT}/callback 設定為 Webhook URL`);
 	}
 });
-
-// // 啟動伺服器
-// app.listen(PORT, () => {
-//   console.log(`LINE Bot 伺服器已啟動，埠號為 ${PORT}`);
-//   console.log(`訪問 URL: http://localhost:${PORT}`);
-// });

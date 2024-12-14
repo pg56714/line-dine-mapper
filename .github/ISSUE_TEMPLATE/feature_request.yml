@@ -1,6 +1,6 @@
 name: "Feature Request"
 description: Submit a suggestion to help us improve the Line Bot.
-title: "[Feat]: "
+title: "feat: "
 labels: ["feat", "enhancement"]
 # assignees:
 #   - line-dine-mapper-team

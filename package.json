@@ -12,6 +12,7 @@
 		"biome": "biome check --write"
 	},
 	"dependencies": {
+		"@googlemaps/google-maps-services-js": "^3.4.0",
 		"@line/bot-sdk": "^9.5.0",
 		"body-parser": "^1.20.3",
 		"dotenv": "^16.4.7",

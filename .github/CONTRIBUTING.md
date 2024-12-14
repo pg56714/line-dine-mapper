@@ -70,7 +70,7 @@ If you have any great ideas of Feature Request, please avoid adding it to the Is
 1. Search our repository for open or closed [Pull Requests](https://github.com/pg56714/line-dine-mapper/pulls) that relate to your submission. You don't want to duplicate effort.
 2. Fork the project.
 3. Create your feature branch (`git checkout -b feat/amazing_feature`).
-4. Commit your changes (`git commit -m '[feat]: add amazing_feature'`). Please follow the specification mentioned above for your commit messages.
+4. Commit your changes (`git commit -m 'feat: add amazing_feature'`). Please follow the specification mentioned above for your commit messages.
 5. Push to the branch (`git push origin feat/amazing_feature`).
 6. [Open a Pull Request](https://github.com/pg56714/line-dine-mapper/compare?expand=1).
 7. Make sure to fill in the all the details in the Pull Request to make it easier for the reviewers. Make sure to refer to any discussion or Issues that your PR is fixing.

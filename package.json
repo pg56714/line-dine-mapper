@@ -1,10 +1,16 @@
 {
 	"name": "line-dine-mapper",
 	"version": "1.0.0",
-	"main": "index.js",
+	"main": "src/app.ts",
 	"repository": "git@github.com:pg56714/line-dine-mapper.git",
 	"author": "HONG,HAO-SYUAN <pg785632541@gmail.com>",
 	"license": "MIT",
+	"scripts": {
+	  "start": "node dist/app.js",
+	  "dev": "ts-node src/app.ts",
+	  "build": "tsc",
+	  "biome": "biome check --write"
+	},
 	"dependencies": {
 		"@line/bot-sdk": "^9.5.0",
 		"body-parser": "^1.20.3",

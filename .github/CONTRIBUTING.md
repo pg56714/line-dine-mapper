@@ -31,7 +31,7 @@ To set up a development environment, please follow these steps:
 4. Start the development Server.
 
    ```sh
-   yarn ts-node index.ts
+   yarn ts-node src/app.ts
    ```
 
 ### Use Dockerfile

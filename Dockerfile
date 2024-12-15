@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:22-alpine
 
 # 設定工作目錄
 WORKDIR /usr/src/app

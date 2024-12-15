@@ -35,5 +35,6 @@ export interface UserPreferences {
 	restaurants: Restaurant[]; // 餐廳列表
 	showNext: number; // 追蹤目前顯示進度
 	isSessionEnded: boolean; // 是否結束互動
-	lastSelectedRestaurant: Restaurant | null; // 上次選擇的餐廳
+	lastSelectedRestaurant: Restaurant | null; // 選擇的餐廳
+	context: string; // 使用者目前狀態，例如：找餐廳'restaurantList'、收藏名單'favoritesList'
 }

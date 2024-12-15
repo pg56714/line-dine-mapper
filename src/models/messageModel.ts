@@ -5,11 +5,7 @@ import {
 	type webhook,
 } from "@line/bot-sdk";
 import dotenv from "dotenv";
-import type {
-	Restaurant,
-	RestaurantDetails,
-	UserPreferences,
-} from "../types/restaurantTypes";
+import type { Restaurant, UserPreferences } from "../types/restaurantTypes";
 
 import {
 	geocodeAddress,
@@ -34,6 +30,7 @@ let userPreferences: UserPreferences = {
 	showNext: 0,
 	isSessionEnded: false,
 	lastSelectedRestaurant: null,
+	context: null,
 };
 
 /**
@@ -49,6 +46,7 @@ const resetPreferences = () => {
 		showNext: 0,
 		isSessionEnded: false,
 		lastSelectedRestaurant: null,
+		context: null,
 	};
 };
 
@@ -65,12 +63,12 @@ const handleEndInteraction = async (replyToken: string, userId: string) => {
 		loadingSeconds: 5,
 	});
 
-	await client.replyMessage({
-		replyToken,
+	await client.pushMessage({
+		to: userId,
 		messages: [
 			{
 				type: "text",
-				text: "感謝您的使用！希望下次能為您服務。如需重新開始，請輸入『找餐廳』。",
+				text: "感謝您的使用！希望下次能為您服務。",
 			},
 		],
 	});
@@ -82,8 +80,6 @@ const handleEndInteraction = async (replyToken: string, userId: string) => {
  * @param replyToken - 用於回覆訊息的 token
  */
 const handleStartInteraction = async (replyToken: string, userId: string) => {
-	resetPreferences();
-
 	await client.showLoadingAnimation({
 		chatId: userId,
 		loadingSeconds: 5,
@@ -143,6 +139,56 @@ const handleAddressInput = async (
 	});
 	return true;
 };
+
+/**
+ * 使用者搜尋偏好設定處理函式
+ * 處理並驗證使用者輸入的 topCount 值，並根據輸入更新偏好設定或要求後續輸入。
+ * @param userPreferences - 儲存使用者偏好設定的物件
+ * @param client - 與聊天用戶端互動的 API 客戶端
+ * @param userId - 用戶的唯一識別 ID
+ * @param userMessage - 用戶傳遞的訊息（topCount 值）
+ * @param replyToken - 用於回覆訊息的 token
+ */
+async function handleTopCountInput(
+	userPreferences: { topCount?: number },
+	client: messagingApi.MessagingApiClient,
+	userId: string,
+	userMessage: string,
+	replyToken: string,
+): Promise<void> {
+	if (!userPreferences.topCount) {
+		await client.showLoadingAnimation({
+			chatId: userId,
+			loadingSeconds: 5,
+		});
+
+		// 解析使用者輸入的數字
+		const topCount = Number.parseInt(userMessage || "", 10);
+
+		// 驗證輸入是否為有效的正數字
+		if (Number.isNaN(topCount) || topCount <= 0) {
+			await client.replyMessage({
+				replyToken,
+				messages: [{ type: "text", text: "請輸入有效的數字（例如：10）" }],
+			});
+			return;
+		}
+
+		// 更新使用者偏好設定
+		userPreferences.topCount = topCount;
+
+		// 回覆下一步的訊息請求
+		await client.replyMessage({
+			replyToken,
+			messages: [
+				{
+					type: "text",
+					text: "請輸入搜尋半徑範圍（單位：公尺，例如：1000 表示 1 公里）：",
+				},
+			],
+		});
+	}
+}
 
 /**
  * 搜尋範圍輸入處理函式
@@ -262,8 +308,7 @@ const sendRestaurantDetails = async (
 						{
 							type: "postback",
 							label: "收藏該餐廳",
-							data: `action=save&restaurantId=${restaurant.place_id}`,
-							text: "新增至收藏名單",
+							data: `action=add_to_favorites&restaurantId=${restaurant.place_id}`,
 						},
 						{
 							type: "message",
@@ -385,205 +430,513 @@ const sendRestaurantList = async (replyToken: string, userId: string) => {
 };
 
 /**
- * 主事件處理函式
- * 負責處理來自 LINE 的事件並呼叫對應的邏輯
- * @param event - LINE 傳遞的事件
- * @returns API 回應結果
+ * 新增餐廳至收藏清單
+ * @param replyToken - 用於回覆訊息的 token
+ * @param userId - LINE 使用者 ID
  */
-export const textEventHandler = async (
-	event: webhook.Event,
-): Promise<MessageAPIResponseBase | undefined> => {
-	if (
-		event.type !== "message" ||
-		(event.message.type !== "text" && event.message.type !== "location")
-	)
-		return;
-
-	const userMessage =
-		event.message.type === "text" ? event.message.text.trim() : null;
-	const replyToken = event.replyToken;
-
-	if (userMessage === "找餐廳") {
-		await handleStartInteraction(replyToken, event.source.userId);
-		return;
-	}
-
-	if (userPreferences.isSessionEnded) {
-		await client.replyMessage({
-			replyToken,
-			messages: [
-				{
-					type: "text",
-					text: "互動已結束。如需重新開始，請輸入『找餐廳』或是『收藏名單』。",
-				},
-			],
+const handleAddToFavorites = async (
+	replyToken: string,
+	userId: string,
+): Promise<void> => {
+	try {
+		await client.showLoadingAnimation({
+			chatId: userId,
+			loadingSeconds: 5,
 		});
-		return;
-	}
 
-	// 處理新增至收藏名單的邏輯
-	if (userMessage === "新增至收藏名單") {
-		try {
-			// 顯示 Loading Animation
-			await client.showLoadingAnimation({
-				chatId: event.source.userId,
-				loadingSeconds: 5,
+		// 檢查是否有選擇最後的餐廳，若沒有則提示用戶
+		if (!userPreferences.lastSelectedRestaurant) {
+			await client.replyMessage({
+				replyToken,
+				messages: [
+					{ type: "text", text: "您尚未選取餐廳，請先選擇餐廳後再試。" },
+				],
 			});
-
-			if (!userPreferences.lastSelectedRestaurant) {
-				await client.replyMessage({
-					replyToken,
-					messages: [
-						{ type: "text", text: "您尚未選取餐廳，請先選擇餐廳後再試。" },
-					],
-				});
-				return; // 中止執行
-			}
-
-			const restaurant = userPreferences.lastSelectedRestaurant;
-			const restaurantDetails = await getRestaurantDetails(restaurant.place_id);
-
-			// 檢查餐廳是否已收藏
-			const existingFavorite = await Favorite.findOne({
-				lineUserId: event.source.userId,
-				restaurantId: restaurant.place_id,
-			});
-
-			if (existingFavorite) {
-				await client.replyMessage({
-					replyToken,
-					messages: [
-						{
-							type: "text",
-							text: `餐廳「${restaurant.name}」已經在您的收藏名單中！`,
-						},
-					],
-				});
-			}
-
-			// 新增餐廳至收藏
-			const favorite = new Favorite({
-				lineUserId: event.source.userId,
-				restaurantId: restaurant.place_id,
-				name: restaurant.name,
-				address: restaurant.vicinity,
-				latitude: restaurantDetails.geometry.location.lat || 0,
-				longitude: restaurantDetails.geometry.location.lng || 0,
-			});
-
-			await favorite.save();
-
-			// 使用 pushMessage 來回覆成功訊息 (不使用 replyToken)
-			if (event.source.type === "user" && event.source.userId) {
-				await client.pushMessage({
-					to: event.source.userId,
-					messages: [
-						{
-							type: "text",
-							text: `成功收藏餐廳：${restaurant.name}！`,
-						},
-					],
-				});
-			} else {
-				console.error("無法取得使用者 ID，無法發送訊息。");
-			}
-
-			// 呼叫結束互動邏輯
-			await handleEndInteraction(replyToken, event.source.userId);
-			return; // 中止執行
-		} catch (error) {
-			console.error("處理時發生錯誤:", error);
-			// 使用 pushMessage 回覆錯誤訊息
-			if (event.source.type === "user" && event.source.userId) {
-				await client.pushMessage({
-					to: event.source.userId,
-					messages: [
-						{
-							type: "text",
-							text: "新增收藏時發生錯誤，請稍後再試。",
-						},
-					],
-				});
-			}
-			return; // 中止執行
+			return;
 		}
-	}
 
-	if (userMessage === "結束") {
-		await handleEndInteraction(replyToken, event.source.userId);
-		return;
-	}
+		const restaurant = userPreferences.lastSelectedRestaurant;
 
-	if (!userPreferences.currentLocation) {
-		await handleAddressInput(
-			replyToken,
-			userMessage || "",
-			event.source.userId,
-		);
-		return;
-	}
+		// 從 API 獲取選定餐廳的詳細資訊
+		const restaurantDetails = await getRestaurantDetails(restaurant.place_id);
 
-	if (!userPreferences.topCount) {
-		const topCount = Number.parseInt(userMessage || "", 10);
-		if (Number.isNaN(topCount) || topCount <= 0) {
+		// 檢查該餐廳是否已在收藏清單中
+		const existingFavorite = await Favorite.findOne({
+			lineUserId: userId,
+			restaurantId: restaurant.place_id,
+		});
+
+		if (existingFavorite) {
+			// 如果餐廳已經收藏過，提示用戶
 			await client.replyMessage({
 				replyToken,
 				messages: [
 					{
 						type: "text",
-						text: "請輸入有效的數字（例如：10）：",
+						text: `餐廳「${restaurant.name}」已經在您的收藏名單中！`,
+					},
+				],
+			});
+
+			// 呼叫結束互動邏輯
+			await handleEndInteraction(replyToken, userId);
+			return;
+		}
+
+		// 如果餐廳未收藏，則新增至收藏清單
+		const favorite = new Favorite({
+			lineUserId: userId,
+			restaurantId: restaurant.place_id,
+			name: restaurant.name,
+			address: restaurant.vicinity,
+			latitude: restaurantDetails.geometry.location.lat || 0,
+			longitude: restaurantDetails.geometry.location.lng || 0,
+		});
+
+		await favorite.save(); // 將收藏記錄保存到資料庫
+
+		// 回覆成功訊息
+		await client.replyMessage({
+			replyToken,
+			messages: [
+				{
+					type: "text",
+					text: `成功收藏餐廳：${restaurant.name}！`,
+				},
+			],
+		});
+
+		// 呼叫結束互動邏輯
+		await handleEndInteraction(replyToken, userId);
+		return;
+	} catch (error) {
+		console.error("新增收藏時發生錯誤:", error);
+
+		// 如果發生錯誤，提示用戶稍後再試
+		await client.replyMessage({
+			replyToken,
+			messages: [{ type: "text", text: "新增收藏時發生錯誤，請稍後再試。" }],
+		});
+	}
+};
+
+/**
+ * 顯示收藏名單，支援分頁功能
+ * 如果收藏名單太多，允許用戶輸入「繼續」以查看更多
+ * @param replyToken - 用於回覆訊息的 token
+ * @param userId - LINE 使用者 ID
+ */
+const handleFavoritesList = async (
+	replyToken: string,
+	userId: string,
+): Promise<void> => {
+	try {
+		// 每頁顯示的收藏數量
+		const itemsPerPage = 4;
+
+		// 確定要顯示的範圍
+		const startIndex = userPreferences.showNext || 0;
+		const favorites = await Favorite.find({ lineUserId: userId });
+
+		// 收藏數量檢查
+		if (!favorites || favorites.length === 0) {
+			await client.replyMessage({
+				replyToken,
+				messages: [{ type: "text", text: "您的收藏名單目前是空的！" }],
+			});
+			return;
+		}
+
+		const endIndex = Math.min(startIndex + itemsPerPage, favorites.length);
+
+		// 檢查是否有更多內容需要顯示
+		const hasMore = endIndex < favorites.length;
+
+		// 動態生成 FlexBubble
+		const bubbles: messagingApi.FlexBubble[] = favorites
+			.slice(startIndex, endIndex)
+			.map((favorite) => ({
+				type: "bubble",
+				body: {
+					type: "box",
+					layout: "vertical",
+					contents: [
+						{
+							type: "text",
+							text: favorite.name,
+							weight: "bold",
+							size: "xl",
+							wrap: true,
+						},
+						{
+							type: "text",
+							text: favorite.address,
+							wrap: true,
+						},
+					],
+				},
+				footer: {
+					type: "box",
+					layout: "vertical",
+					contents: [
+						{
+							type: "button",
+							style: "primary",
+							action: {
+								type: "uri",
+								label: "查看地圖",
+								uri: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+									favorite.name,
+								)}&query_place_id=${favorite.restaurantId}`,
+							},
+						},
+						{
+							type: "button",
+							style: "secondary",
+							action: {
+								type: "postback",
+								label: "刪除收藏",
+								data: `action=delete&restaurantId=${favorite.restaurantId}`,
+							},
+						},
+					],
+				},
+			}));
+
+		// Flex 訊息格式
+		const flexMessage: messagingApi.FlexMessage = {
+			type: "flex",
+			altText: "您的收藏名單",
+			contents: {
+				type: "carousel",
+				contents: bubbles,
+			},
+		};
+
+		// 附加的提示訊息
+		const continuationMessage: messagingApi.TextMessage = {
+			type: "text",
+			text: hasMore ? "輸入「繼續」以查看更多收藏。" : "已顯示所有收藏名單。",
+		};
+
+		// 更新顯示索引
+		userPreferences.showNext = hasMore ? endIndex : 0; // 下一頁或重置為 0
+
+		// 發送訊息
+		await client.replyMessage({
+			replyToken,
+			messages: [flexMessage, continuationMessage],
+		});
+	} catch (error) {
+		console.error("取得收藏名單時發生錯誤:", error);
+		await client.replyMessage({
+			replyToken,
+			messages: [{ type: "text", text: "取得收藏名單失敗，請稍後再試。" }],
+		});
+	}
+};
+
+/**
+ * 隨機推薦收藏名單中的餐廳
+ * 從用戶的收藏名單中隨機選擇一個餐廳，並提供詳細資訊及操作選項
+ * @param replyToken - 用於回覆訊息的 token
+ * @param userId - LINE 使用者 ID
+ */
+const handleRandomRecommendation = async (
+	replyToken: string,
+	userId: string,
+) => {
+	// 從資料庫中查詢該用戶的收藏名單
+	const favorites = await Favorite.find({ lineUserId: userId });
+
+	// 檢查收藏名單是否為空
+	if (!favorites || favorites.length === 0) {
+		// 如果收藏名單為空，提示用戶新增收藏餐廳
+		await client.replyMessage({
+			replyToken,
+			messages: [
+				{ type: "text", text: "您的收藏名單目前是空的！請先新增收藏餐廳。" },
+			],
+		});
+		return; // 結束執行
+	}
+
+	// 隨機從收藏名單中選擇一個餐廳
+	const randomRestaurant =
+		favorites[Math.floor(Math.random() * favorites.length)];
+
+	// 生成 Flex 訊息以顯示隨機推薦的餐廳資訊
+	const randomRestaurantMessage: messagingApi.FlexMessage = {
+		type: "flex",
+		altText: "隨機推薦的餐廳", // 當裝置不支援 Flex 訊息時顯示的文字
+		contents: {
+			type: "bubble",
+			body: {
+				type: "box",
+				layout: "vertical",
+				contents: [
+					{
+						type: "text",
+						text: randomRestaurant.name, // 餐廳名稱
+						weight: "bold", // 文字加粗
+						size: "xl", // 文字大小
+						wrap: true, // 允許文字換行
+					},
+					{
+						type: "text",
+						text: randomRestaurant.address, // 餐廳地址
+						wrap: true, // 允許文字換行
+					},
+				],
+			},
+			footer: {
+				type: "box",
+				layout: "vertical",
+				spacing: "sm", // 按鈕間距
+				contents: [
+					{
+						type: "button",
+						style: "link", // 按鈕樣式為連結
+						action: {
+							type: "uri",
+							label: "查看地圖", // 按鈕文字
+							uri: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+								randomRestaurant.name,
+							)}&destination_place_id=${randomRestaurant.restaurantId}`, // Google 地圖導航連結
+						},
+					},
+				],
+			},
+		},
+	};
+
+	// 回覆隨機推薦的餐廳訊息
+	await client.replyMessage({
+		replyToken,
+		messages: [randomRestaurantMessage],
+	});
+
+	// 呼叫結束互動邏輯
+	await handleEndInteraction(replyToken, userId);
+};
+
+/**
+ * 刪除收藏的餐廳
+ * 根據用戶選擇的餐廳 ID 從資料庫中移除該收藏
+ * @param replyToken - 用於回覆訊息的 token
+ * @param userId - LINE 使用者 ID
+ * @param restaurantId - 要刪除的餐廳 ID
+ */
+const handleDeleteFavorite = async (
+	replyToken: string,
+	userId: string,
+	restaurantId: string,
+): Promise<void> => {
+	try {
+		// 刪除資料庫中的該收藏
+		const result = await Favorite.deleteOne({
+			lineUserId: userId,
+			restaurantId: restaurantId,
+		});
+
+		// 檢查刪除結果
+		if (result.deletedCount === 0) {
+			await client.replyMessage({
+				replyToken,
+				messages: [
+					{
+						type: "text",
+						text: "未找到要刪除的收藏項目，請確認餐廳是否在您的收藏中。",
 					},
 				],
 			});
 			return;
 		}
-		userPreferences.topCount = topCount;
 
+		// 刪除成功的回覆訊息
 		await client.replyMessage({
 			replyToken,
-			messages: [
-				{
-					type: "text",
-					text: "請輸入搜尋半徑範圍（單位：公尺，例如：1000 表示 1 公里）：",
-				},
-			],
+			messages: [{ type: "text", text: "已成功刪除該收藏！" }],
 		});
-		return;
-	}
-
-	if (!userPreferences.radius) {
-		await handleRadiusInput(replyToken, userMessage || "", event.source.userId);
-		return;
-	}
-
-	if (userMessage === "繼續") {
-		await sendRestaurantList(replyToken, event.source.userId);
-		return;
-	}
-
-	const selectedRestaurant =
-		userMessage?.toLowerCase() === "隨機"
-			? userPreferences.restaurants[
-					Math.floor(Math.random() * userPreferences.restaurants.length)
-				]
-			: userPreferences.restaurants[Number.parseInt(userMessage || "", 10) - 1];
-
-	if (selectedRestaurant) {
-		userPreferences.lastSelectedRestaurant = selectedRestaurant; // 記錄選取的餐廳
-		await sendRestaurantDetails(
-			replyToken,
-			selectedRestaurant,
-			event.source.userId,
-		);
-	} else {
+	} catch (error) {
+		console.error("刪除收藏時發生錯誤:", error);
 		await client.replyMessage({
 			replyToken,
-			messages: [
-				{
-					type: "text",
-					text: "請輸入有效的餐廳序號，或輸入「隨機」讓系統推薦。",
-				},
-			],
+			messages: [{ type: "text", text: "刪除收藏時發生錯誤，請稍後再試。" }],
 		});
+	}
+};
+
+export const textEventHandler = async (
+	event: webhook.Event,
+): Promise<MessageAPIResponseBase | undefined> => {
+	// 處理 message 事件
+	if (event.type === "message") {
+		const { message, replyToken } = event;
+
+		// 僅處理 text 和 location 類型的訊息
+		if (message.type === "text" || message.type === "location") {
+			const userMessage = message.type === "text" ? message.text.trim() : null;
+
+			if (userMessage === "結束") {
+				await handleEndInteraction(replyToken, event.source.userId);
+				return;
+			}
+
+			if (userMessage === "收藏名單") {
+				resetPreferences();
+				userPreferences.context = "favoritesList";
+				await handleFavoritesList(replyToken, event.source.userId);
+				return;
+			}
+
+			if (userMessage === "隨機推薦") {
+				resetPreferences();
+				await handleRandomRecommendation(replyToken, event.source.userId);
+				return;
+			}
+
+			if (userMessage === "找餐廳") {
+				resetPreferences();
+				userPreferences.context = "restaurantList"; // 設置為「找餐廳」
+				await handleStartInteraction(replyToken, event.source.userId);
+				return;
+			}
+
+			if (userMessage === "繼續") {
+				if (userPreferences.context === "restaurantList") {
+					await sendRestaurantList(replyToken, event.source.userId);
+				} else if (userPreferences.context === "favoritesList") {
+					await handleFavoritesList(replyToken, event.source.userId);
+				} else {
+					await client.replyMessage({
+						replyToken,
+						messages: [{ type: "text", text: "當前沒有可繼續的操作。" }],
+					});
+				}
+				return;
+			}
+
+			// 如果互動已結束，直接回覆
+			if (userPreferences.isSessionEnded) {
+				await client.replyMessage({
+					replyToken,
+					messages: [
+						{
+							type: "text",
+							text: "互動已結束。如需重新開始，請輸入『找餐廳』、『收藏名單』、『隨機推薦』。",
+						},
+					],
+				});
+				return;
+			}
+
+			// 確保處理順序正確
+			if (!userPreferences.currentLocation) {
+				// 僅當需要位置時才執行
+				await handleAddressInput(
+					replyToken,
+					userMessage || "",
+					event.source.userId,
+				);
+				return;
+			}
+
+			if (!userPreferences.topCount) {
+				await handleTopCountInput(
+					userPreferences,
+					client,
+					event.source.userId,
+					userMessage || "",
+					replyToken,
+				);
+				return;
+			}
+
+			if (!userPreferences.radius) {
+				await handleRadiusInput(
+					replyToken,
+					userMessage || "",
+					event.source.userId,
+				);
+				return;
+			}
+
+			// 處理餐廳選擇
+			const selectedRestaurant = (() => {
+				if (userMessage?.toLowerCase() === "隨機") {
+					// 確保隨機選擇時列表有內容
+					if (userPreferences.restaurants.length === 0) return null;
+					return userPreferences.restaurants[
+						Math.floor(Math.random() * userPreferences.restaurants.length)
+					];
+				}
+
+				// 確保 userMessage 是有效的數字並在範圍內
+				const index = Number.parseInt(userMessage || "", 10) - 1;
+				if (
+					!Number.isNaN(index) &&
+					index >= 0 &&
+					index < userPreferences.restaurants.length
+				) {
+					return userPreferences.restaurants[index];
+				}
+
+				// 預設為無效選擇
+				return null;
+			})();
+
+			if (selectedRestaurant) {
+				// 設定最後選中的餐廳並發送詳細資訊
+				userPreferences.lastSelectedRestaurant = selectedRestaurant;
+				await sendRestaurantDetails(
+					replyToken,
+					selectedRestaurant,
+					event.source.userId,
+				);
+			} else {
+				// 提示用戶重新輸入有效序號或使用隨機推薦
+				await client.replyMessage({
+					replyToken,
+					messages: [
+						{
+							type: "text",
+							text: "請輸入有效的餐廳序號（例如：1），或輸入「隨機」讓系統推薦。",
+						},
+					],
+				});
+			}
+		}
+	}
+
+	// 處理 postback 事件
+	if (event.type === "postback") {
+		const postbackEvent = event as webhook.PostbackEvent;
+		const params = new URLSearchParams(postbackEvent.postback.data);
+
+		// 處理刪除收藏的事件
+		if (params.get("action") === "delete") {
+			const restaurantId = params.get("restaurantId");
+			if (!restaurantId) {
+				await client.replyMessage({
+					replyToken: event.replyToken,
+					messages: [{ type: "text", text: "無效的刪除請求。" }],
+				});
+				return;
+			}
+
+			await handleDeleteFavorite(
+				event.replyToken,
+				event.source.userId,
+				restaurantId,
+			);
+			return;
+		}
+
+		// 處理新增至收藏的事件
+		if (params.get("action") === "add_to_favorites") {
+			await handleAddToFavorites(event.replyToken, event.source.userId);
+			return;
+		}
 	}
 };

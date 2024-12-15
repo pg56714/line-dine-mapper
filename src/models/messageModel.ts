@@ -67,10 +67,38 @@ const handleEndInteraction = async (replyToken: string, userId: string) => {
 		to: userId,
 		messages: [
 			{
-				type: "text",
-				text: "感謝您的使用！希望下次能為您服務。",
+			  type: "text",
+			  text: "感謝您的使用！希望下次能為您服務。如需重新開始，請選擇以下快速操作：",
+			  quickReply: {
+				items: [
+				  {
+					type: "action",
+					action: {
+					  type: "message",
+					  label: "重新開始",
+					  text: "找餐廳",
+					},
+				  },
+				  {
+					type: "action",
+					action: {
+					  type: "message",
+					  label: "查看收藏",
+					  text: "收藏名單",
+					},
+				  },
+				  {
+					type: "action",
+					action: {
+					  type: "message",
+					  label: "隨機推薦",
+					  text: "隨機推薦",
+					},
+				  },
+				],
+			  },
 			},
-		],
+		  ],
 	});
 };
 
@@ -627,6 +655,11 @@ const handleFavoritesList = async (
 			replyToken,
 			messages: [flexMessage, continuationMessage],
 		});
+
+		if (!hasMore) {
+			// 呼叫結束互動邏輯
+			await handleEndInteraction(replyToken, userId);
+		}
 	} catch (error) {
 		console.error("取得收藏名單時發生錯誤:", error);
 		await client.replyMessage({
@@ -824,84 +857,118 @@ export const textEventHandler = async (
 					messages: [
 						{
 							type: "text",
-							text: "互動已結束。如需重新開始，請輸入『找餐廳』、『收藏名單』、『隨機推薦』。",
+							text: "互動已結束。如需重新開始，請選擇以下快速操作：",
+							quickReply: {
+								items: [
+									{
+										type: "action",
+										action: {
+											type: "message",
+											label: "重新開始",
+											text: "找餐廳",
+										},
+									},
+									{
+										type: "action",
+										action: {
+											type: "message",
+											label: "查看收藏",
+											text: "收藏名單",
+										},
+									},
+									{
+										type: "action",
+										action: {
+											type: "message",
+											label: "隨機推薦",
+											text: "隨機推薦",
+										},
+									},
+								],
+							},
 						},
 					],
 				});
 				return;
 			}
 
-			// 確保處理順序正確
-			if (!userPreferences.currentLocation) {
-				// 僅當需要位置時才執行
-				await handleAddressInput(
-					replyToken,
-					userMessage || "",
-					event.source.userId,
-				);
-				return;
-			}
-
-			if (!userPreferences.topCount) {
-				await handleTopCountInput(
-					userPreferences,
-					client,
-					event.source.userId,
-					userMessage || "",
-					replyToken,
-				);
-				return;
-			}
-
-			if (!userPreferences.radius) {
-				await handleRadiusInput(
-					replyToken,
-					userMessage || "",
-					event.source.userId,
-				);
-				return;
-			}
-
-			// 處理餐廳選擇
-			const selectedRestaurant = (() => {
-				if (userMessage?.toLowerCase() === "隨機") {
-					// 確保隨機選擇時列表有內容
-					if (userPreferences.restaurants.length === 0) return null;
-					return userPreferences.restaurants[
-						Math.floor(Math.random() * userPreferences.restaurants.length)
-					];
+			if (userPreferences.context === "restaurantList") {
+				// 確保處理順序正確
+				if (!userPreferences.currentLocation) {
+					// 僅當需要位置時才執行
+					await handleAddressInput(
+						replyToken,
+						userMessage || "",
+						event.source.userId,
+					);
+					return;
 				}
-
-				// 確保 userMessage 是有效的數字並在範圍內
-				const index = Number.parseInt(userMessage || "", 10) - 1;
-				if (
-					!Number.isNaN(index) &&
-					index >= 0 &&
-					index < userPreferences.restaurants.length
-				) {
-					return userPreferences.restaurants[index];
+				if (!userPreferences.topCount) {
+					await handleTopCountInput(
+						userPreferences,
+						client,
+						event.source.userId,
+						userMessage || "",
+						replyToken,
+					);
+					return;
 				}
-
-				// 預設為無效選擇
-				return null;
-			})();
-
-			if (selectedRestaurant) {
-				// 設定最後選中的餐廳並發送詳細資訊
-				userPreferences.lastSelectedRestaurant = selectedRestaurant;
-				await sendRestaurantDetails(
-					replyToken,
-					selectedRestaurant,
-					event.source.userId,
-				);
+				if (!userPreferences.radius) {
+					await handleRadiusInput(
+						replyToken,
+						userMessage || "",
+						event.source.userId,
+					);
+					return;
+				}
+				// 處理餐廳選擇
+				const selectedRestaurant = (() => {
+					if (userMessage?.toLowerCase() === "隨機") {
+						// 確保隨機選擇時列表有內容
+						if (userPreferences.restaurants.length === 0) return null;
+						return userPreferences.restaurants[
+							Math.floor(Math.random() * userPreferences.restaurants.length)
+						];
+					}
+					// 確保 userMessage 是有效的數字並在範圍內
+					const index = Number.parseInt(userMessage || "", 10) - 1;
+					if (
+						!Number.isNaN(index) &&
+						index >= 0 &&
+						index < userPreferences.restaurants.length
+					) {
+						return userPreferences.restaurants[index];
+					}
+					// 預設為無效選擇
+					return null;
+				})();
+				if (selectedRestaurant) {
+					// 設定最後選中的餐廳並發送詳細資訊
+					userPreferences.lastSelectedRestaurant = selectedRestaurant;
+					await sendRestaurantDetails(
+						replyToken,
+						selectedRestaurant,
+						event.source.userId,
+					);
+				} else {
+					// 提示用戶重新輸入有效序號或使用隨機推薦
+					await client.replyMessage({
+						replyToken,
+						messages: [
+							{
+								type: "text",
+								text: "請輸入有效的餐廳序號（例如：1），或輸入「隨機」讓系統推薦。",
+							},
+						],
+					});
+				}
 			} else {
-				// 提示用戶重新輸入有效序號或使用隨機推薦
 				await client.replyMessage({
 					replyToken,
 					messages: [
 						{
 							type: "text",
-							text: "請輸入有效的餐廳序號（例如：1），或輸入「隨機」讓系統推薦。",
+							text: "輸入「繼續」以查看更多收藏，或是輸入結束。",
 						},
 					],
 				});

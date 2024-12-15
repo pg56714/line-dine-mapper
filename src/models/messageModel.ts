@@ -67,38 +67,38 @@ const handleEndInteraction = async (replyToken: string, userId: string) => {
 		to: userId,
 		messages: [
 			{
-			  type: "text",
-			  text: "感謝您的使用！希望下次能為您服務。如需重新開始，請選擇以下快速操作：",
-			  quickReply: {
-				items: [
-				  {
-					type: "action",
-					action: {
-					  type: "message",
-					  label: "重新開始",
-					  text: "找餐廳",
-					},
-				  },
-				  {
-					type: "action",
-					action: {
-					  type: "message",
-					  label: "查看收藏",
-					  text: "收藏名單",
-					},
-				  },
-				  {
-					type: "action",
-					action: {
-					  type: "message",
-					  label: "隨機推薦",
-					  text: "隨機推薦",
-					},
-				  },
-				],
-			  },
+				type: "text",
+				text: "感謝您的使用！希望下次能為您服務。如需重新開始，請選擇以下快速操作：",
+				quickReply: {
+					items: [
+						{
+							type: "action",
+							action: {
+								type: "message",
+								label: "重新開始",
+								text: "找餐廳",
+							},
+						},
+						{
+							type: "action",
+							action: {
+								type: "message",
+								label: "查看收藏",
+								text: "收藏名單",
+							},
+						},
+						{
+							type: "action",
+							action: {
+								type: "message",
+								label: "隨機推薦",
+								text: "隨機推薦",
+							},
+						},
+					],
+				},
 			},
-		  ],
+		],
 	});
 };
 
@@ -803,6 +803,50 @@ const handleDeleteFavorite = async (
 export const textEventHandler = async (
 	event: webhook.Event,
 ): Promise<MessageAPIResponseBase | undefined> => {
+	// 處理 follow 事件（用戶加入好友）
+	if (event.type === "follow") {
+		const replyToken = event.replyToken;
+
+		await client.replyMessage({
+			replyToken,
+			messages: [
+				{
+					type: "text",
+					text: "歡迎加入！以下是快速操作選單，請選擇：",
+					quickReply: {
+						items: [
+							{
+								type: "action",
+								action: {
+									type: "message",
+									label: "找餐廳",
+									text: "找餐廳",
+								},
+							},
+							{
+								type: "action",
+								action: {
+									type: "message",
+									label: "查看收藏",
+									text: "收藏名單",
+								},
+							},
+							{
+								type: "action",
+								action: {
+									type: "message",
+									label: "隨機推薦",
+									text: "隨機推薦",
+								},
+							},
+						],
+					},
+				},
+			],
+		});
+		return;
+	}
+
 	// 處理 message 事件
 	if (event.type === "message") {
 		const { message, replyToken } = event;

@@ -55,7 +55,7 @@ const resetPreferences = () => {
  * 將會話標記為已結束並回覆結束訊息
  * @param replyToken - 用於回覆訊息的 token
  */
-const handleEndInteraction = async (replyToken: string, userId: string) => {
+const handleEndInteraction = async (userId: string) => {
 	userPreferences.isSessionEnded = true;
 
 	await client.showLoadingAnimation({
@@ -83,7 +83,7 @@ const handleEndInteraction = async (replyToken: string, userId: string) => {
 							type: "action",
 							action: {
 								type: "message",
-								label: "查看收藏",
+								label: "查看收藏名單",
 								text: "收藏名單",
 							},
 						},
@@ -91,7 +91,7 @@ const handleEndInteraction = async (replyToken: string, userId: string) => {
 							type: "action",
 							action: {
 								type: "message",
-								label: "隨機推薦",
+								label: "隨機推薦(從收藏名單)",
 								text: "隨機推薦",
 							},
 						},
@@ -118,7 +118,7 @@ const handleStartInteraction = async (replyToken: string, userId: string) => {
 		messages: [
 			{
 				type: "text",
-				text: "請輸入您目前的位置（例如：台北市中山區南京東路三段1號）：",
+				text: "請輸入您目前的位置（例如：臺北市信義區信義路5段7號）：",
 			},
 		],
 	});
@@ -190,8 +190,9 @@ async function handleTopCountInput(
 			loadingSeconds: 5,
 		});
 
-		// 解析使用者輸入的數字
-		const topCount = Number.parseInt(userMessage || "", 10);
+		// 移除非數字字符（如單位），僅保留數字部分
+		const cleanedMessage = userMessage.replace(/[^\d]/g, ""); // 移除所有非數字字符
+		const topCount = Number.parseInt(cleanedMessage, 10);
 
 		// 驗證輸入是否為有效的正數字
 		if (Number.isNaN(topCount) || topCount <= 0) {
@@ -507,7 +508,7 @@ const handleAddToFavorites = async (
 			});
 
 			// 呼叫結束互動邏輯
-			await handleEndInteraction(replyToken, userId);
+			await handleEndInteraction(userId);
 			return;
 		}
 
@@ -535,7 +536,7 @@ const handleAddToFavorites = async (
 		});
 
 		// 呼叫結束互動邏輯
-		await handleEndInteraction(replyToken, userId);
+		await handleEndInteraction(userId);
 		return;
 	} catch (error) {
 		console.error("新增收藏時發生錯誤:", error);
@@ -658,7 +659,7 @@ const handleFavoritesList = async (
 
 		if (!hasMore) {
 			// 呼叫結束互動邏輯
-			await handleEndInteraction(replyToken, userId);
+			await handleEndInteraction(userId);
 		}
 	} catch (error) {
 		console.error("取得收藏名單時發生錯誤:", error);
@@ -750,7 +751,7 @@ const handleRandomRecommendation = async (
 	});
 
 	// 呼叫結束互動邏輯
-	await handleEndInteraction(replyToken, userId);
+	await handleEndInteraction(userId);
 };
 
 /**
@@ -827,7 +828,7 @@ export const textEventHandler = async (
 								type: "action",
 								action: {
 									type: "message",
-									label: "查看收藏",
+									label: "查看收藏名單",
 									text: "收藏名單",
 								},
 							},
@@ -835,7 +836,7 @@ export const textEventHandler = async (
 								type: "action",
 								action: {
 									type: "message",
-									label: "隨機推薦",
+									label: "隨機推薦(從收藏名單)",
 									text: "隨機推薦",
 								},
 							},
@@ -856,7 +857,7 @@ export const textEventHandler = async (
 			const userMessage = message.type === "text" ? message.text.trim() : null;
 
 			if (userMessage === "結束") {
-				await handleEndInteraction(replyToken, event.source.userId);
+				await handleEndInteraction(event.source.userId);
 				return;
 			}
 
@@ -916,7 +917,7 @@ export const textEventHandler = async (
 										type: "action",
 										action: {
 											type: "message",
-											label: "查看收藏",
+											label: "查看收藏名單",
 											text: "收藏名單",
 										},
 									},
@@ -924,7 +925,7 @@ export const textEventHandler = async (
 										type: "action",
 										action: {
 											type: "message",
-											label: "隨機推薦",
+											label: "隨機推薦(從收藏名單)",
 											text: "隨機推薦",
 										},
 									},
@@ -1006,13 +1007,51 @@ export const textEventHandler = async (
 						],
 					});
 				}
-			} else {
+			} else if (userPreferences.context === "favoritesList") {
 				await client.replyMessage({
 					replyToken,
 					messages: [
 						{
 							type: "text",
 							text: "輸入「繼續」以查看更多收藏，或是輸入結束。",
+						},
+					],
+				});
+			} else {
+				await client.replyMessage({
+					replyToken,
+					messages: [
+						{
+							type: "text",
+							text: "請輸入『找餐廳』、『收藏名單』、『隨機推薦』，以下快速操作：",
+							quickReply: {
+								items: [
+									{
+										type: "action",
+										action: {
+											type: "message",
+											label: "找餐廳",
+											text: "找餐廳",
+										},
+									},
+									{
+										type: "action",
+										action: {
+											type: "message",
+											label: "查看收藏名單",
+											text: "收藏名單",
+										},
+									},
+									{
+										type: "action",
+										action: {
+											type: "message",
+											label: "隨機推薦(從收藏名單)",
+											text: "隨機推薦",
+										},
+									},
+								],
+							},
 						},
 					],
 				});

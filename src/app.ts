@@ -1,7 +1,10 @@
 import dotenv from "dotenv";
 import express, { type Application } from "express";
+import { connectDB } from "./db/mongoDB";
 import lineRoutes from "./routes/lineRoutes";
 import { startNgrok } from "./utils/ngrokUtil";
+
+connectDB();
 
 dotenv.config();
 

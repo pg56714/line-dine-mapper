@@ -14,6 +14,13 @@ import {
 } from "../utils/googleMapsUtil";
 import { Favorite } from "./favoritesModel";
 
+import {
+	addFavorite,
+	deleteFavoriteById,
+	getFavoritesByUserId,
+	isFavoriteExists,
+} from "../services/favoriteService";
+
 dotenv.config();
 
 const clientConfig: ClientConfig = {
@@ -490,10 +497,10 @@ const handleAddToFavorites = async (
 		const restaurantDetails = await getRestaurantDetails(restaurant.place_id);
 
 		// 檢查該餐廳是否已在收藏清單中
-		const existingFavorite = await Favorite.findOne({
-			lineUserId: userId,
-			restaurantId: restaurant.place_id,
-		});
+		const existingFavorite = await isFavoriteExists(
+			userId,
+			restaurant.place_id,
+		);
 
 		if (existingFavorite) {
 			// 如果餐廳已經收藏過，提示用戶
@@ -513,16 +520,14 @@ const handleAddToFavorites = async (
 		}
 
 		// 如果餐廳未收藏，則新增至收藏清單
-		const favorite = new Favorite({
-			lineUserId: userId,
-			restaurantId: restaurant.place_id,
-			name: restaurant.name,
-			address: restaurant.vicinity,
-			latitude: restaurantDetails.geometry.location.lat || 0,
-			longitude: restaurantDetails.geometry.location.lng || 0,
-		});
-
-		await favorite.save(); // 將收藏記錄保存到資料庫
+		await addFavorite(
+			userId,
+			restaurant.place_id,
+			restaurant.name,
+			restaurant.vicinity,
+			restaurantDetails.geometry.location.lat || 0,
+			restaurantDetails.geometry.location.lng || 0,
+		);
 
 		// 回覆成功訊息
 		await client.replyMessage({
@@ -565,7 +570,7 @@ const handleFavoritesList = async (
 
 		// 確定要顯示的範圍
 		const startIndex = userPreferences.showNext || 0;
-		const favorites = await Favorite.find({ lineUserId: userId });
+		const favorites = await getFavoritesByUserId(userId);
 
 		// 收藏數量檢查
 		if (!favorites || favorites.length === 0) {
@@ -684,7 +689,7 @@ const handleRandomRecommendation = async (
 	userId: string,
 ) => {
 	// 從資料庫中查詢該用戶的收藏名單
-	const favorites = await Favorite.find({ lineUserId: userId });
+	const favorites = await getFavoritesByUserId(userId);
 
 	// 檢查收藏名單是否為空
 	if (!favorites || favorites.length === 0) {
@@ -771,13 +776,10 @@ const handleDeleteFavorite = async (
 ): Promise<void> => {
 	try {
 		// 刪除資料庫中的該收藏
-		const result = await Favorite.deleteOne({
-			lineUserId: userId,
-			restaurantId: restaurantId,
-		});
+		const deletedCount = await deleteFavoriteById(userId, restaurantId);
 
 		// 檢查刪除結果
-		if (result.deletedCount === 0) {
+		if (deletedCount === 0) {
 			await client.replyMessage({
 				replyToken,
 				messages: [
@@ -795,6 +797,9 @@ const handleDeleteFavorite = async (
 			replyToken,
 			messages: [{ type: "text", text: "已成功刪除該收藏！" }],
 		});
+
+		// 呼叫結束互動邏輯
+		await handleEndInteraction(userId);
 	} catch (error) {
 		console.error("刪除收藏時發生錯誤:", error);
 		await client.replyMessage({

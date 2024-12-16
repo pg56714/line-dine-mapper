@@ -1,6 +1,6 @@
 # line-美食地圖夥伴
 
-繁體中文 | [English](./README_EN.md)
+繁體中文 | [English](./README_en.md)
 
 這個專案將 LINE Bot 與 Google Maps API 結合，為用戶提供方便的餐廳收藏工具。
 

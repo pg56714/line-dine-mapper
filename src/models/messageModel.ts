@@ -118,7 +118,7 @@ const handleStartInteraction = async (replyToken: string, userId: string) => {
 		messages: [
 			{
 				type: "text",
-				text: "請輸入您目前的位置（例如：臺北市信義區信義路5段7號）：",
+				text: "請輸入您目前的位置（例如：臺北市信義區信義路5段7號）或是用位置資訊傳送：",
 			},
 		],
 	});
@@ -287,71 +287,6 @@ const handleRadiusInput = async (
 };
 
 /**
- * 發送餐廳詳細資訊
- * 提供餐廳的名稱、地址、評分和其他資訊，並提供操作選項
- * @param replyToken - 用於回覆訊息的 token
- * @param restaurant - 選中的餐廳資訊
- */
-const sendRestaurantDetails = async (
-	replyToken: string,
-	restaurant: Restaurant,
-	userId: string,
-) => {
-	await client.showLoadingAnimation({
-		chatId: userId,
-		loadingSeconds: 5,
-	});
-
-	const restaurantDetails = await getRestaurantDetails(restaurant.place_id);
-
-	await client.replyMessage({
-		replyToken,
-		messages: [
-			{
-				type: "text",
-				text: `🍽 餐廳資訊：\n\n🏷 名稱: ${restaurantDetails.name}\n📍 地址: ${restaurantDetails.formatted_address}\n\n📝 評論數: ${restaurantDetails.user_ratings_total || "無"}\n⭐ 平均評分: ${restaurantDetails.rating || "無"}\n\n🕒 營業時間:\n${
-					restaurantDetails.opening_hours?.weekday_text
-						.map((day) => `📅 ${day}`)
-						.join("\n") || "無資訊"
-				}`,
-			},
-			{
-				type: "template",
-				altText: "請選擇操作",
-				template: {
-					type: "buttons",
-					text: "您可以選擇以下操作：",
-					actions: [
-						{
-							type: "uri",
-							label: "導航到餐廳",
-							uri: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-								restaurantDetails.name,
-							)}&destination_place_id=${restaurant.place_id}`,
-						},
-						{
-							type: "uri",
-							label: "導航到Line Go",
-							uri: `https://app.taxigo.com.tw/?destination=${restaurantDetails.geometry.location.lat},${restaurantDetails.geometry.location.lng}`,
-						},
-						{
-							type: "postback",
-							label: "收藏該餐廳",
-							data: `action=add_to_favorites&restaurantId=${restaurant.place_id}`,
-						},
-						{
-							type: "message",
-							label: "結束互動",
-							text: "結束",
-						},
-					],
-				},
-			},
-		],
-	});
-};
-
-/**
  * 發送餐廳清單
  * 根據用戶偏好顯示餐廳列表，每次最多顯示 4 筆
  * @param replyToken - 用於回覆訊息的 token
@@ -445,8 +380,8 @@ const sendRestaurantList = async (replyToken: string, userId: string) => {
 		type: "text",
 		text:
 			endIndex < userPreferences.restaurants.length
-				? "輸入「繼續」以查看更多餐廳，或直接輸入餐廳序號，也可輸入「隨機」來獲得推薦！"
-				: "已顯示所有餐廳。請輸入餐廳序號或輸入「隨機」以隨機推薦。",
+				? "輸入『繼續』以查看更多餐廳，或直接輸入『餐廳序號』，也可輸入『隨機』來獲得推薦！"
+				: "已顯示所有餐廳。請輸入餐廳序號或輸入『隨機』以隨機推薦。",
 	};
 
 	userPreferences.showNext = endIndex; // 更新索引
@@ -455,6 +390,71 @@ const sendRestaurantList = async (replyToken: string, userId: string) => {
 	await client.replyMessage({
 		replyToken,
 		messages: [flexMessage, textMessage],
+	});
+};
+
+/**
+ * 發送餐廳詳細資訊
+ * 提供餐廳的名稱、地址、評分和其他資訊，並提供操作選項
+ * @param replyToken - 用於回覆訊息的 token
+ * @param restaurant - 選中的餐廳資訊
+ */
+const sendRestaurantDetails = async (
+	replyToken: string,
+	restaurant: Restaurant,
+	userId: string,
+) => {
+	await client.showLoadingAnimation({
+		chatId: userId,
+		loadingSeconds: 5,
+	});
+
+	const restaurantDetails = await getRestaurantDetails(restaurant.place_id);
+
+	await client.replyMessage({
+		replyToken,
+		messages: [
+			{
+				type: "text",
+				text: `🍽 餐廳資訊：\n\n🏷 名稱: ${restaurantDetails.name}\n📍 地址: ${restaurantDetails.formatted_address}\n\n📝 評論數: ${restaurantDetails.user_ratings_total || "無"}\n⭐ 平均評分: ${restaurantDetails.rating || "無"}\n\n🕒 營業時間:\n${
+					restaurantDetails.opening_hours?.weekday_text
+						.map((day) => `📅 ${day}`)
+						.join("\n") || "無資訊"
+				}`,
+			},
+			{
+				type: "template",
+				altText: "請選擇操作",
+				template: {
+					type: "buttons",
+					text: "您可以選擇以下操作：",
+					actions: [
+						{
+							type: "uri",
+							label: "導航到餐廳",
+							uri: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+								restaurantDetails.name,
+							)}&destination_place_id=${restaurant.place_id}`,
+						},
+						{
+							type: "uri",
+							label: "導航到Line Go",
+							uri: `https://app.taxigo.com.tw/?destination=${restaurantDetails.geometry.location.lat},${restaurantDetails.geometry.location.lng}`,
+						},
+						{
+							type: "postback",
+							label: "收藏該餐廳",
+							data: `action=add_to_favorites&restaurantId=${restaurant.place_id}`,
+						},
+						{
+							type: "message",
+							label: "結束互動",
+							text: "結束",
+						},
+					],
+				},
+			},
+		],
 	});
 };
 
@@ -502,7 +502,7 @@ const handleAddToFavorites = async (
 				messages: [
 					{
 						type: "text",
-						text: `餐廳「${restaurant.name}」已經在您的收藏名單中！`,
+						text: `餐廳『${restaurant.name}』已經在您的收藏名單中！`,
 					},
 				],
 			});
@@ -551,7 +551,7 @@ const handleAddToFavorites = async (
 
 /**
  * 顯示收藏名單，支援分頁功能
- * 如果收藏名單太多，允許用戶輸入「繼續」以查看更多
+ * 如果收藏名單太多，允許用戶輸入『繼續』以查看更多
  * @param replyToken - 用於回覆訊息的 token
  * @param userId - LINE 使用者 ID
  */
@@ -607,10 +607,12 @@ const handleFavoritesList = async (
 				footer: {
 					type: "box",
 					layout: "vertical",
+					spacing: "sm",
 					contents: [
 						{
 							type: "button",
 							style: "primary",
+							height: "sm",
 							action: {
 								type: "uri",
 								label: "查看地圖",
@@ -622,6 +624,7 @@ const handleFavoritesList = async (
 						{
 							type: "button",
 							style: "secondary",
+							height: "sm",
 							action: {
 								type: "postback",
 								label: "刪除收藏",
@@ -645,7 +648,7 @@ const handleFavoritesList = async (
 		// 附加的提示訊息
 		const continuationMessage: messagingApi.TextMessage = {
 			type: "text",
-			text: hasMore ? "輸入「繼續」以查看更多收藏。" : "已顯示所有收藏名單。",
+			text: hasMore ? "輸入『繼續』以查看更多收藏。" : "已顯示所有收藏名單。",
 		};
 
 		// 更新顯示索引
@@ -876,7 +879,7 @@ export const textEventHandler = async (
 
 			if (userMessage === "找餐廳") {
 				resetPreferences();
-				userPreferences.context = "restaurantList"; // 設置為「找餐廳」
+				userPreferences.context = "restaurantList"; // 設置為『找餐廳』
 				await handleStartInteraction(replyToken, event.source.userId);
 				return;
 			}
@@ -1002,7 +1005,7 @@ export const textEventHandler = async (
 						messages: [
 							{
 								type: "text",
-								text: "請輸入有效的餐廳序號（例如：1），或輸入「隨機」讓系統推薦。",
+								text: "請輸入有效的餐廳序號（例如：1），或輸入『隨機』讓系統推薦。",
 							},
 						],
 					});
@@ -1013,7 +1016,7 @@ export const textEventHandler = async (
 					messages: [
 						{
 							type: "text",
-							text: "輸入「繼續」以查看更多收藏，或是輸入結束。",
+							text: "輸入『繼續』以查看更多收藏，或是輸入結束。",
 						},
 					],
 				});

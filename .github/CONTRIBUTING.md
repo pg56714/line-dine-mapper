@@ -24,19 +24,33 @@ To set up a development environment, please follow these steps:
    ```sh
    CHANNEL_ACCESS_TOKEN=YOUR_CHANNEL_ACCESS_TOKEN   # Replace with your LINE channel access token
    CHANNEL_SECRET=YOUR_CHANNEL_SECRET               # Replace with your LINE channel secret
+   GOOGLE_MAPS_API_KEY=YOUR_GOOGLE_MAPS_API_KEY      # Replace with your Google Maps API key
    PORT=3000                                        # The port on which the server will run
    IS_LOCAL=true                                    # Set to true for local development, enabling ngrok to generate a public URL
+   MONGO_URI=YOUR_MONGO_URI                         # Replace with your MongoDB URI
    ```
 
 4. Start the development Server.
 
    ```sh
-   yarn ts-node src/app.ts
+   yarn dev
    ```
 
 ### Use Dockerfile
 
-Dockerfile will be provided in a future update
+You can also use Docker to run the application. To do so, follow these steps:
+
+1. Build the Docker image.
+
+   ```sh
+   docker build -t line-dine-mapper .
+   ```
+
+2. Run the Docker container.
+
+   ```sh
+   docker run -p 8080:8080 --env-file .env line-dine-mapper
+   ```
 
 ### Commit message rules
 

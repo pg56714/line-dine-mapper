@@ -1,29 +1,30 @@
-# line-美食地圖夥伴
+# line-dine-mapper
 
-繁體中文 | [English](./README_EN.md)
+English | [繁體中文](./README.md)
 
-這個專案將 LINE Bot 與 Google Maps API 結合，為用戶提供方便的餐廳收藏工具。
+This project integrates LINE Bot with the Google Maps API to provide users with a convenient restaurant bookmarking tool.
 
-## LINE Bot 資訊
+## LINE Bot Information
 
-- **Bot 基本 ID**: `@798sblaw`
+- **Bot Basic ID**: `@798sblaw`
 <div style="text-align: center;">
     <h3>QR Code</h3>
     <img src="assets/qr_code.png" alt="QR Code" width="200">
 </div>
 
-## 主要功能
-1. **找餐廳**
-   - 排序方式：餐廳按照評論數優先排序，其次為評分高低。
-2. **收藏名單**
-   - 用戶可以將「找餐廳」中的餐廳新增至收藏名單。
-3. **隨機推薦**
-   - 從用戶的收藏名單中隨機推薦一家餐廳。
+## Main Features
+1. **Find Restaurants**
+   - Sorting: Restaurants are sorted first by the number of reviews, then by rating.
+2. **Bookmark List**
+   - Users can add restaurants to their bookmark list from the "Find Restaurants" feature.
+3. **Random Recommendation**
+   - Suggests a random restaurant from the user's bookmark list.
 
-更多詳細資訊，請參考[文件](https://hackmd.io/@-nXGMy8zTgK2nBlGiHohww/S1QC2z6Eye)。
+For detailed information, please refer to the [documentation-zh](https://hackmd.io/@-nXGMy8zTgK2nBlGiHohww/S1QC2z6Eye).
+
 
 <div style="text-align: center;">
-    <h3>範例</h3>
+    <h3>Demo</h3>
     <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
         <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
             <img src="assets/1.jpg" style="width: 100%; height: 100%; object-fit: cover;">
@@ -55,16 +56,16 @@
     </div>
 </div>
 
-## 貢獻指南
+## Contributing
 
-請參考[貢獻指南](.github/CONTRIBUTING.md)。
+Check out the [Contributing Guide](.github/CONTRIBUTING.md).
 
-### 貢獻者
+### Contributors
 
 <a href="https://github.com/pg56714/line-dine-mapper/graphs/contributors">
     <img src="https://contrib.rocks/image?repo=pg56714/line-dine-mapper" />
 </a>
 
-## 授權條款
+## License
 
-本專案採用 [MIT 授權條款](LICENSE)。
+The [MIT License](LICENSE).

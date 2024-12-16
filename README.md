@@ -7,10 +7,8 @@
 ## LINE Bot 資訊
 
 - **Bot 基本 ID**: `@798sblaw`
-<div style="text-align: center;">
-    <h3>QR Code</h3>
-    <img src="assets/qr_code.png" alt="QR Code" width="200">
-</div>
+
+<img src="assets/qr_code.png" alt="QR Code" width="200">
 
 ## 主要功能
 1. **找餐廳**
@@ -22,37 +20,16 @@
 
 更多詳細資訊，請參考[文件](https://hackmd.io/@-nXGMy8zTgK2nBlGiHohww/S1QC2z6Eye)。
 
-<div style="text-align: center;">
-    <h3>範例</h3>
-    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/1.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/2.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/3.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/4.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/5.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/6.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/7.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/8.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/9.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-    </div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+    <img src="assets/1.jpg" style="width: 200px; height: auto; object-fit: cover;">
+    <img src="assets/2.jpg" style="width: 200px; height: auto; object-fit: cover;">
+    <img src="assets/3.jpg" style="width: 200px; height: auto; object-fit: cover;">
+    <img src="assets/4.jpg" style="width: 200px; height: auto; object-fit: cover;">
+    <img src="assets/5.jpg" style="width: 200px; height: auto; object-fit: cover;">
+    <img src="assets/6.jpg" style="width: 200px; height: auto; object-fit: cover;">
+    <img src="assets/7.jpg" style="width: 200px; height: auto; object-fit: cover;">
+    <img src="assets/8.jpg" style="width: 200px; height: auto; object-fit: cover;">
+    <img src="assets/9.jpg" style="width: 200px; height: auto; object-fit: cover;">
 </div>
 
 ## 貢獻指南

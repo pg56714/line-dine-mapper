@@ -7,10 +7,8 @@ This project integrates LINE Bot with the Google Maps API to provide users with 
 ## LINE Bot Information
 
 - **Bot Basic ID**: `@798sblaw`
-<div style="text-align: center;">
-    <h3>QR Code</h3>
-    <img src="assets/qr_code.png" alt="QR Code" width="200">
-</div>
+
+<img src="assets/qr_code.png" alt="QR Code" width="200">
 
 ## Main Features
 1. **Find Restaurants**
@@ -22,38 +20,16 @@ This project integrates LINE Bot with the Google Maps API to provide users with 
 
 For detailed information, please refer to the [documentation-zh](https://hackmd.io/@-nXGMy8zTgK2nBlGiHohww/S1QC2z6Eye).
 
-
-<div style="text-align: center;">
-    <h3>Demo</h3>
-    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/1.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/2.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/3.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/4.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/5.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/6.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/7.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/8.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-            <img src="assets/9.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        </div>
-    </div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+    <img src="assets/1.jpg" style="width: 200px; height: auto; object-fit: cover;">
+    <img src="assets/2.jpg" style="width: 200px; height: auto; object-fit: cover;">
+    <img src="assets/3.jpg" style="width: 200px; height: auto; object-fit: cover;">
+    <img src="assets/4.jpg" style="width: 200px; height: auto; object-fit: cover;">
+    <img src="assets/5.jpg" style="width: 200px; height: auto; object-fit: cover;">
+    <img src="assets/6.jpg" style="width: 200px; height: auto; object-fit: cover;">
+    <img src="assets/7.jpg" style="width: 200px; height: auto; object-fit: cover;">
+    <img src="assets/8.jpg" style="width: 200px; height: auto; object-fit: cover;">
+    <img src="assets/9.jpg" style="width: 200px; height: auto; object-fit: cover;">
 </div>
 
 ## Contributing

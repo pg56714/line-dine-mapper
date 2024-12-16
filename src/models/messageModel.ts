@@ -12,7 +12,6 @@ import {
 	getRestaurantDetails,
 	searchNearbyRestaurants,
 } from "../utils/googleMapsUtil";
-import { Favorite } from "./favoritesModel";
 
 import {
 	addFavorite,
@@ -809,6 +808,11 @@ const handleDeleteFavorite = async (
 	}
 };
 
+/**
+ * 文字訊息事件處理函式
+ * @param event - LINE Webhook 事件物件
+ * @returns	- 回覆訊息
+ */
 export const textEventHandler = async (
 	event: webhook.Event,
 ): Promise<MessageAPIResponseBase | undefined> => {

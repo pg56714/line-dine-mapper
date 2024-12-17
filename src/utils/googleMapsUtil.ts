@@ -91,10 +91,6 @@ export const searchNearbyRestaurants = async (
 			restaurants.map(async (restaurant) => {
 				const details = await getRestaurantDetails(restaurant.place_id);
 
-				const convertedAddress = details?.formatted_address
-					? cleanAddress(converter(details.formatted_address))
-					: cleanAddress(converter(restaurant.vicinity));
-
 				// 獲取跳轉後圖片 URL
 				const imageUrl = restaurant.photos?.[0]?.photo_reference
 					? await getFinalPhotoUrl(restaurant.photos[0].photo_reference)
@@ -102,7 +98,7 @@ export const searchNearbyRestaurants = async (
 
 				return {
 					name: restaurant.name,
-					vicinity: convertedAddress || restaurant.vicinity,
+					vicinity: details?.formatted_address || restaurant.vicinity,
 					place_id: restaurant.place_id,
 					rating: restaurant.rating,
 					user_ratings_total: restaurant.user_ratings_total,

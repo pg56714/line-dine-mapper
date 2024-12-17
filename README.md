@@ -29,7 +29,6 @@
     <img src="assets/6.jpg" style="width: 200px; height: auto; object-fit: cover;">
     <img src="assets/7.jpg" style="width: 200px; height: auto; object-fit: cover;">
     <img src="assets/8.jpg" style="width: 200px; height: auto; object-fit: cover;">
-    <img src="assets/9.jpg" style="width: 200px; height: auto; object-fit: cover;">
 </div>
 
 ## 貢獻指南

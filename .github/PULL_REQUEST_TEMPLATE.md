@@ -17,7 +17,7 @@
 
 ## Related tickets
 
-https://github.com/pg56714/git-issue-pr-workflow-template/issues/XX
+https://github.com/pg56714/line-dine-mapper/issues/XX
 
 <!-- 4. Confirm the following before submitting your PR -->
 

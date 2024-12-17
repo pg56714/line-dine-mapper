@@ -1,7 +1,11 @@
 import { Client } from "@googlemaps/google-maps-services-js";
 import axios from "axios";
 import dotenv from "dotenv";
+import OpenCC from "opencc-js";
 import type { Restaurant, RestaurantDetails } from "../types/restaurantTypes";
+
+// 初始化轉換器(因有些地址是簡體中文)
+const converter = OpenCC.Converter({ from: "cn", to: "twp" }); // 簡體轉繁體
 
 dotenv.config();
 
@@ -9,6 +13,18 @@ const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY || "";
 
 // 初始化 Google Maps Client
 const googleMapsClient = new Client({});
+
+/**
+ * 去除地址中的郵遞區號和 "台灣"
+ * @param address - 完整地址字串
+ * @returns 處理後的地址
+ */
+const cleanAddress = (address: string): string => {
+	return address
+		.replace(/\b\d{3,5}\b/g, "")
+		.replace(/臺灣/g, "")
+		.trim();
+};
 
 /**
  * 使用 Google Maps Geocoding API 將地址解析為經緯度
@@ -23,7 +39,7 @@ export const geocodeAddress = async (
 			params: {
 				address,
 				key: googleMapsApiKey,
-				language: "zh-TW", // 設置為繁體中文
+				language: "zh-TW",
 			},
 		});
 
@@ -70,19 +86,30 @@ export const searchNearbyRestaurants = async (
 
 		const restaurants = response.data.results;
 
-		// 將 API 結果轉換為自定義 Restaurant 格式
-		const formattedRestaurants: Restaurant[] = restaurants.map(
-			(restaurant) => ({
-				name: restaurant.name,
-				vicinity: restaurant.vicinity,
-				place_id: restaurant.place_id,
-				rating: restaurant.rating,
-				user_ratings_total: restaurant.user_ratings_total,
-				imageUrl: restaurant.photos?.[0]?.photo_reference
-					? getPhotoUrl(restaurant.photos[0].photo_reference)
-					: "",
-				url: `https://www.google.com/maps/place/?q=place_id:${restaurant.place_id}`, // Google Maps 頁面連結
-				mapUrl: `https://www.google.com/maps/dir/?api=1&destination=${restaurant.geometry.location.lat},${restaurant.geometry.location.lng}`, // 導航連結
+		// 轉換成 Restaurant 格式
+		const formattedRestaurants: Restaurant[] = await Promise.all(
+			restaurants.map(async (restaurant) => {
+				const details = await getRestaurantDetails(restaurant.place_id);
+
+				const convertedAddress = details?.formatted_address
+					? cleanAddress(converter(details.formatted_address))
+					: cleanAddress(converter(restaurant.vicinity));
+
+				// 獲取跳轉後圖片 URL
+				const imageUrl = restaurant.photos?.[0]?.photo_reference
+					? await getFinalPhotoUrl(restaurant.photos[0].photo_reference)
+					: "";
+
+				return {
+					name: restaurant.name,
+					vicinity: convertedAddress || restaurant.vicinity,
+					place_id: restaurant.place_id,
+					rating: restaurant.rating,
+					user_ratings_total: restaurant.user_ratings_total,
+					imageUrl: imageUrl,
+					url: `https://www.google.com/maps/place/?q=place_id:${restaurant.place_id}`,
+					mapUrl: `https://www.google.com/maps/dir/?api=1&destination=${restaurant.geometry.location.lat},${restaurant.geometry.location.lng}`,
+				};
 			}),
 		);
 
@@ -119,11 +146,19 @@ export const getRestaurantDetails = async (
 				params: {
 					place_id: placeId,
 					key: googleMapsApiKey,
-					language: "zh-TW", // 設置為繁體中文
+					language: "zh-TW",
 				},
 			},
 		);
-		return response.data.result as RestaurantDetails;
+
+		const details = response.data.result as RestaurantDetails;
+		if (details.formatted_address) {
+			details.formatted_address = cleanAddress(
+				converter(details.formatted_address),
+			);
+		}
+
+		return details;
 	} catch (error) {
 		console.error("Error fetching restaurant details:", error);
 		throw error;
@@ -131,11 +166,29 @@ export const getRestaurantDetails = async (
 };
 
 /**
- * 根據 photo_reference 生成圖片 URL
- * @param photoReference - Google Maps API 返回的 photo_reference
- * @param maxWidth - 圖片最大寬度（選填）
- * @returns 圖片完整 URL
+ * 獲取跳轉後的圖片 URL
+ * @param photoReference - Google Maps API 的 photo_reference
+ * @param maxWidth - 最大寬度
+ * @returns 最終圖片 URL
  */
-const getPhotoUrl = (photoReference: string, maxWidth = 400): string => {
-	return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photoreference=${photoReference}&key=${googleMapsApiKey}`;
+const getFinalPhotoUrl = async (
+	photoReference: string,
+	maxWidth = 400,
+): Promise<string> => {
+	const photoApiUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photoreference=${photoReference}&key=${googleMapsApiKey}`;
+	try {
+		// 設定 axios 請求不跟隨重定向 (maxRedirects: 0)
+		const response = await axios.get(photoApiUrl, {
+			maxRedirects: 0, // 不跟隨重定向
+			validateStatus: (status) => status === 302, // 接受 302
+		});
+		const finalUrl = response.headers.location;
+		if (finalUrl) {
+			return finalUrl;
+		}
+		throw new Error("未找到 Location header");
+	} catch (error) {
+		console.error("Error fetching final photo URL:", error);
+		return "";
+	}
 };

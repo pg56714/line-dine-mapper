@@ -19,7 +19,8 @@
 		"dotenv": "^16.4.7",
 		"express": "^4.21.2",
 		"mongoose": "^8.9.0",
-		"ngrok": "^5.0.0-beta.2"
+		"ngrok": "^5.0.0-beta.2",
+		"opencc-js": "^1.0.5"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",

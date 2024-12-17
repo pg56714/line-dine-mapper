@@ -310,7 +310,7 @@ const sendRestaurantList = async (replyToken: string, userId: string) => {
 	const bubbles: messagingApi.FlexBubble[] = userPreferences.restaurants
 		.slice(startIndex, endIndex)
 		.map((restaurant, index): messagingApi.FlexBubble => {
-			// console.log(restaurant.imageUrl); // debug
+			// console.log(restaurant); // debug
 			return {
 				type: "bubble",
 				hero: {
@@ -523,7 +523,7 @@ const handleAddToFavorites = async (
 			userId,
 			restaurant.place_id,
 			restaurant.name,
-			restaurant.vicinity,
+			restaurantDetails.formatted_address,
 			restaurantDetails.geometry.location.lat || 0,
 			restaurantDetails.geometry.location.lng || 0,
 		);

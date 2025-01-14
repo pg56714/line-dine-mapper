@@ -131,37 +131,58 @@ const handleStartInteraction = async (replyToken: string, userId: string) => {
 };
 
 /**
- * 地址輸入處理函式
- * 使用 Google Maps Geocoding API 將地址解析為經緯度
+ * 處理位置輸入（文字地址或地理位置訊息）
+ * 使用者可以傳送位置訊息或輸入地址
  * @param replyToken - 用於回覆訊息的 token
- * @param address - 使用者輸入的地址
+ * @param userId - LINE 使用者 ID
+ * @param addressOrLocation - 文字地址或地理位置信息
  * @returns 是否成功解析地址
  */
 const handleAddressInput = async (
 	replyToken: string,
-	address: string,
 	userId: string,
+	addressOrLocation: { address?: string; lat?: number; lng?: number },
 ) => {
 	await client.showLoadingAnimation({
 		chatId: userId,
 		loadingSeconds: 5,
 	});
 
-	const location = await geocodeAddress(address);
+	let location = null;
+
+	if (addressOrLocation.address) {
+		// 使用地址解析成經緯度
+		location = await geocodeAddress(addressOrLocation.address);
+		if (!location) {
+			await client.replyMessage({
+				replyToken,
+				messages: [
+					{
+						type: "text",
+						text: "無法解析該地址，請重新輸入有效的地址（例如：台北市中山區南京東路三段1號）或傳送位置資訊。",
+					},
+				],
+			});
+			return false;
+		}
+	} else if (addressOrLocation.lat && addressOrLocation.lng) {
+		// 直接使用位置訊息
+		location = { lat: addressOrLocation.lat, lng: addressOrLocation.lng };
+	}
+
 	if (!location) {
 		await client.replyMessage({
 			replyToken,
 			messages: [
-				{
-					type: "text",
-					text: "無法解析該地址，請重新輸入有效的地址（例如：台北市中山區南京東路三段1號）：",
-				},
+				{ type: "text", text: "無法取得位置，請重新輸入或傳送位置資訊。" },
 			],
 		});
 		return false;
 	}
 
+	// 儲存位置資訊
 	userPreferences.currentLocation = location;
+
 	await client.replyMessage({
 		replyToken,
 		messages: [
@@ -171,6 +192,7 @@ const handleAddressInput = async (
 			},
 		],
 	});
+
 	return true;
 };
 
@@ -952,12 +974,18 @@ export const textEventHandler = async (
 			if (userPreferences.context === "restaurantList") {
 				// 確保處理順序正確
 				if (!userPreferences.currentLocation) {
-					// 僅當需要位置時才執行
-					await handleAddressInput(
-						replyToken,
-						userMessage || "",
-						event.source.userId,
-					);
+					if (message.type === "text") {
+						// 處理文字地址
+						await handleAddressInput(replyToken, event.source.userId, {
+							address: message.text,
+						});
+					} else if (message.type === "location") {
+						// 處理地理位置訊息
+						await handleAddressInput(replyToken, event.source.userId, {
+							lat: message.latitude,
+							lng: message.longitude,
+						});
+					}
 					return;
 				}
 				if (!userPreferences.topCount) {

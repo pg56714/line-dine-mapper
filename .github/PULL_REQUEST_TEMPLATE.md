@@ -1,5 +1,5 @@
 <!-- 1. Verify and Update PR Title -->
-<!-- Example PR Title: `[build | chore | ci | docs | feat | fix | perf | refactor | revert | style | test]: Fix page layout` -->
+<!-- Example PR Title: `build | chore | ci | docs | feat | fix | perf | refactor | revert | style | test: Fix page layout` -->
 
 <!-- 2. Provide a detailed description of the changes -->
 

@@ -41,7 +41,7 @@ body:
       label: "Submission Checklist"
       description: "Before submitting this issue, please ensure you have completed the following:"
       options:
-        - label: "Follow our [Code of Conduct](https://github.com/pg56714/line-dine-mapper/blob/main/.github/CODE_OF_CONDUCT.md"
+        - label: "Follow our [Code of Conduct](https://github.com/pg56714/line-dine-mapper/blob/main/.github/CODE_OF_CONDUCT.md)"
           required: true
         - label: "Check that there isn't [already an issue](https://github.com/pg56714/line-dine-mapper/issues) reporting the same bug to avoid duplicates."
           required: true

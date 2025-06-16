@@ -2,8 +2,7 @@ name: "Feature Request"
 description: Submit a suggestion to help us improve the Line Bot.
 title: "feat: "
 labels: ["feat", "enhancement"]
-# assignees:
-#   - line-dine-mapper-team
+
 body:
   - type: markdown
     attributes:
@@ -41,7 +40,7 @@ body:
       label: "Confirmations"
       description: "Before submitting the request, please confirm the following:"
       options:
-        - label: "I have followed the [Code of Conduct](https://github.com/line-dine-mapper/.github/blob/main/CODE_OF_CONDUCT.md)"
+        - label: "I have followed the [Code of Conduct](https://github.com/pg56714/line-dine-mapper/blob/main/.github/CODE_OF_CONDUCT.md)"
           required: true
-        - label: "I have checked that there isn't [already a similar feature request](https://github.com/line-dine-mapper/issues) to avoid creating a duplicate."
+        - label: "I have checked that there isn't [already a similar feature request](https://github.com/pg56714/line-dine-mapper/issues) to avoid creating a duplicate."
           required: true

@@ -2,8 +2,7 @@ name: "Bug report"
 description: "Create a report to help us improve the Line Bot."
 title: "bug: "
 labels: ["bug", "triage"]
-# assignees:
-#   - line-dine-mapper-team
+
 body:
   - type: markdown
     attributes:
@@ -42,7 +41,7 @@ body:
       label: "Submission Checklist"
       description: "Before submitting this issue, please ensure you have completed the following:"
       options:
-        - label: "Follow our [Code of Conduct](https://github.com/line-dine-mapper/.github/blob/main/CODE_OF_CONDUCT.md)"
+        - label: "Follow our [Code of Conduct](https://github.com/pg56714/line-dine-mapper/blob/main/.github/CODE_OF_CONDUCT.md"
           required: true
-        - label: "Check that there isn't [already an issue](https://github.com/line-dine-mapper/issues) reporting the same bug to avoid duplicates."
+        - label: "Check that there isn't [already an issue](https://github.com/pg56714/line-dine-mapper/issues) reporting the same bug to avoid duplicates."
           required: true

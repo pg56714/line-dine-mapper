@@ -31,6 +31,12 @@ For detailed information, please refer to the [documentation-zh](https://hackmd.
     <img src="assets/8.jpg" style="width: 200px; height: auto; object-fit: cover;">
 </div>
 
+## Local Development
+
+1. Copy `.env.example` to `.env` and fill in the settings.
+2. Run `yarn install`, then `yarn dev`.
+3. With `IS_LOCAL=true`, the app opens an ngrok tunnel to use as the Webhook URL. Set `NGROK_AUTHTOKEN` to your [ngrok authtoken](https://dashboard.ngrok.com/get-started/your-authtoken). ngrok (`@ngrok/ngrok`) is a devDependency for local development only and is not loaded in production.
+
 ## Contributing
 
 Check out the [Contributing Guide](.github/CONTRIBUTING.md).

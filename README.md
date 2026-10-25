@@ -31,6 +31,12 @@
     <img src="assets/8.jpg" style="width: 200px; height: auto; object-fit: cover;">
 </div>
 
+## 本地開發
+
+1. 複製 `.env.example` 為 `.env` 並填入各項設定。
+2. `yarn install` 後執行 `yarn dev`。
+3. 設定 `IS_LOCAL=true` 時，會透過 ngrok 建立公開網址作為 Webhook URL，需在 `NGROK_AUTHTOKEN` 填入 [ngrok authtoken](https://dashboard.ngrok.com/get-started/your-authtoken)。ngrok（`@ngrok/ngrok`）只是本地開發用的 devDependency，正式環境不會載入。
+
 ## 貢獻指南
 
 請參考[貢獻指南](.github/CONTRIBUTING.md)。

@@ -37,6 +37,10 @@ For detailed information, please refer to the [documentation-zh](https://hackmd.
 2. Run `yarn install`, then `yarn dev`.
 3. With `IS_LOCAL=true`, the app opens an ngrok tunnel to use as the Webhook URL. Set `NGROK_AUTHTOKEN` to your [ngrok authtoken](https://dashboard.ngrok.com/get-started/your-authtoken). ngrok (`@ngrok/ngrok`) is a devDependency for local development only and is not loaded in production.
 
+## Security
+
+Dependency upgrades and the known remaining issues are recorded in [docs/security-log.md](docs/security-log.md) ([繁體中文](docs/security-log.zh-TW.md)).
+
 ## Contributing
 
 Check out the [Contributing Guide](.github/CONTRIBUTING.md).

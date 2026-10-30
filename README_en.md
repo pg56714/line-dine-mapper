@@ -1,14 +1,10 @@
 # line-dine-mapper
 
+> **Security:** see [SECURITY.md](SECURITY.md) for known dependency issues.
+
 English | [繁體中文](./README.md)
 
 This project integrates LINE Bot with the Google Maps API to provide users with a convenient restaurant bookmarking tool.
-
-## LINE Bot Information
-
-- **Bot Basic ID**: `@798sblaw`
-
-<img src="assets/qr_code.png" alt="QR Code" width="200">
 
 ## Main Features
 1. **Find Restaurants**
@@ -36,10 +32,6 @@ For detailed information, please refer to the [documentation-zh](https://hackmd.
 1. Copy `.env.example` to `.env` and fill in the settings.
 2. Run `yarn install`, then `yarn dev`.
 3. With `IS_LOCAL=true`, the app opens an ngrok tunnel to use as the Webhook URL. Set `NGROK_AUTHTOKEN` to your [ngrok authtoken](https://dashboard.ngrok.com/get-started/your-authtoken). ngrok (`@ngrok/ngrok`) is a devDependency for local development only and is not loaded in production.
-
-## Security
-
-Dependency upgrades and the known remaining issues are recorded in [docs/security-log.md](docs/security-log.md) ([繁體中文](docs/security-log.zh-TW.md)).
 
 ## Contributing
 

@@ -1,7 +1,5 @@
 # line-dine-mapper
 
-> **Security:** see [SECURITY.md](SECURITY.md) for known dependency issues.
-
 English | [繁體中文](./README.md)
 
 This project integrates LINE Bot with the Google Maps API to provide users with a convenient restaurant bookmarking tool.

@@ -1,4 +1,3 @@
-import { Client } from "@googlemaps/google-maps-services-js";
 import axios from "axios";
 import dotenv from "dotenv";
 import OpenCC from "opencc-js";
@@ -10,9 +9,6 @@ const converter = OpenCC.Converter({ from: "cn", to: "twp" }); // 簡體轉繁�
 dotenv.config();
 
 const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY || "";
-
-// 初始化 Google Maps Client
-const googleMapsClient = new Client({});
 
 /**
  * 去除地址中的郵遞區號和 "台灣"
@@ -35,13 +31,16 @@ export const geocodeAddress = async (
 	address: string,
 ): Promise<{ lat: number; lng: number } | null> => {
 	try {
-		const response = await googleMapsClient.geocode({
-			params: {
-				address,
-				key: googleMapsApiKey,
-				language: "zh-TW",
+		const response = await axios.get(
+			"https://maps.googleapis.com/maps/api/geocode/json",
+			{
+				params: {
+					address,
+					key: googleMapsApiKey,
+					language: "zh-TW",
+				},
 			},
-		});
+		);
 
 		if (response.data.results.length > 0) {
 			const location = response.data.results[0].geometry.location;
